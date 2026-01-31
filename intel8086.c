@@ -1,8 +1,6 @@
 #include "intel8086.h"
 
 //define tables
-const char* reg_8_str[8] = { "AL", "CL", "DL", "BL", "AH", "CH", "DH", "BH" };
-const char* reg_16_str[8] = { "AX", "CX", "DX", "BX", "SP", "BP", "SI", "DI" };
 const OpcodeEntry opcode_table[] = {
   {MOV, "mov", 0b00100010}
 };
@@ -25,19 +23,16 @@ void process8086(const uint8_t* data, const size_t count)
   size_t idx = 0;
   while (idx < count)
   {
-    //only leftmost 6 bits define opcode
-    const OpcodeEntry* op = lookup_opcode(data[idx] >> 2);
-    if (op)
-    {
-      printf("found instruction: %s\n", op->str);
-      uint8_t d = data[idx] & (1 << 1);
-      uint8_t w = data[idx] & (1 << 0);
-      printf("d = %x, w = %x\n", d, w);
-    }
-    else
+    InstructionUnion instr;
+    ModRMUnion modrm;
+    instr.raw_byte = data[idx];
+    modrm.raw_byte = data[idx + 1];
+    const OpcodeEntry* op = lookup_opcode(instr.data.opcode);
+    if (!op)
     {
       printf("unknown instruction. exiting\n");
       exit(0);
     }
+    idx += 2;
   }
 }

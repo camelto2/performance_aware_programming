@@ -5,19 +5,31 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+// Structure to represent the first byte of an 8086 instruction
+typedef struct {
+    uint8_t w     : 1; // Width bit (least significant bit)
+    uint8_t d     : 1; // Direction bit
+    uint8_t opcode: 6; // Opcode (most significant 6 bits)
+} InstructionByte;
 
-//registers
-typedef enum 
-{
-  AL, CL, DL, BL, AH, CH, DH, BH
-} Reg8;
-extern const char* reg_8_str[];
+// Structure to represent the second byte (ModR/M)
+typedef struct {
+    uint8_t rm  : 3; // R/M field (least significant 3 bits)
+    uint8_t reg : 3; // REG field
+    uint8_t mod : 2; // MOD field (most significant 2 bits)
+} ModRMByte;
 
-typedef enum 
-{
-  AX, CX, DX, BX, SP, BP, SI, DI
-} Reg16;
-extern const char* reg_16_str[];
+// Union to easily cast raw bytes to the structured format
+typedef union {
+    uint8_t raw_byte;
+    InstructionByte data;
+} InstructionUnion;
+
+typedef union {
+    uint8_t raw_byte;
+    ModRMByte data;
+} ModRMUnion;
+
 
 //instructions
 typedef enum 
@@ -26,12 +38,12 @@ typedef enum
 } InstructionType;
 
 typedef struct 
-{ 
+{
   InstructionType type;
   const char* str;
   uint8_t opcode;
 } OpcodeEntry;
-extern const OpcodeEntry optcode_table[];
+extern const OpcodeEntry opcode_table[];
 
 const OpcodeEntry* lookup_opcode(uint8_t opcode);
 
