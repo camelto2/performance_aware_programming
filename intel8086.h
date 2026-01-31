@@ -22,14 +22,17 @@ typedef struct {
 // Union to easily cast raw bytes to the structured format
 typedef union {
     uint8_t raw_byte;
-    InstructionByte data;
+    InstructionByte fields;
 } InstructionUnion;
 
 typedef union {
     uint8_t raw_byte;
-    ModRMByte data;
+    ModRMByte fields;
 } ModRMUnion;
 
+//registers
+extern const char* reg_8[];
+extern const char* reg_16[];
 
 //instructions
 typedef enum 
@@ -44,7 +47,6 @@ typedef struct
   uint8_t opcode;
 } OpcodeEntry;
 extern const OpcodeEntry opcode_table[];
-
 const OpcodeEntry* lookup_opcode(uint8_t opcode);
 
 void process8086(const uint8_t* data, const size_t count);
