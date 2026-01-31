@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include "intel8086.h"
 
 uint8_t* read_binary_file(const char* filename, size_t* count_out)
 {
@@ -59,16 +60,6 @@ uint8_t* read_binary_file(const char* filename, size_t* count_out)
   return data;
 }
 
-void processData(const uint8_t* data, const size_t count)
-{
-  size_t idx = 0;
-  while (idx < count)
-  {
-    printf(" %d / %d : %x\n", idx + 1, count, data[idx]);
-    idx++;
-  }
-}
-
 int main(int argc, char* argv[])
 {
 
@@ -84,7 +75,7 @@ int main(int argc, char* argv[])
 
   if (data != NULL)
   {
-    processData(data, count);
+    process8086(data, count);
     free(data);
   }
   else
