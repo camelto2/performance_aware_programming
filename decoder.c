@@ -2,6 +2,73 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+uint8_t* read_binary_file(const char* filename, size_t* count_out)
+{
+  FILE* fp = fopen(filename, "rb");
+  if (fp == NULL)
+  {
+    printf("ERROR: Could not open file: %s", filename);
+    return NULL;
+  }
+
+  //Seek to the end of the file to determine the size
+  if (fseek(fp, 0L, SEEK_END) != 0) 
+  {
+    printf("Error seeking to end of file");
+    fclose(fp);
+    return NULL;
+  }
+
+  //Get file size
+  size_t file_size = ftell(fp);
+  if (file_size == -1L)
+  {
+    printf("Error getting file size");
+    fclose(fp);
+    return NULL;
+  }
+
+  //rewind  to the beginning of the file
+  if (fseek(fp, 0L, SEEK_SET) != 0) 
+  {
+    printf("Error seeking to beginning of file");
+    fclose(fp);
+    return NULL;
+  }
+
+  uint8_t* data = malloc(file_size);
+  if (data == NULL)
+  {
+    printf("Could not allocate data buffer");
+    fclose(fp);
+    return NULL;
+  }
+
+  size_t count = file_size / sizeof(uint8_t);
+  size_t bytes_read = fread(data, sizeof(uint8_t), count, fp);
+  if (bytes_read != file_size)
+  {
+    printf("Error reading file: expected %zu bytes, read %zu bytes\n", file_size, bytes_read);
+    fclose(fp);
+    free(data);
+    return NULL;
+  }
+
+  fclose(fp);
+  *count_out = count;
+  return data;
+}
+
+void processData(const uint8_t* data, const size_t count)
+{
+  size_t idx = 0;
+  while (idx < count)
+  {
+    printf(" %d / %d : %x\n", idx + 1, count, data[idx]);
+    idx++;
+  }
+}
+
 int main(int argc, char* argv[])
 {
 
@@ -10,34 +77,21 @@ int main(int argc, char* argv[])
     printf("Usage: %s <filename>\n", argv[0]);
     return EXIT_FAILURE;
   }
-
   const char* filename = argv[1];
-  FILE* fp = fopen(filename, "rb");
-  if (fp == NULL)
+
+  size_t count;
+  uint8_t* data = read_binary_file(filename, &count);
+
+  if (data != NULL)
   {
-    printf("ERROR: Could not open file: %s. Exiting!\n", filename);
+    processData(data, count);
+    free(data);
+  }
+  else
+  {
+    printf("Error reading file\n");
     return EXIT_FAILURE;
   }
-
-  //2 8 bit vals
-  uint8_t val[2];
-  size_t bytes_read;
-
-  while ( (bytes_read = fread(&val, sizeof(val[0]), sizeof(val)/sizeof(val[0]), fp)) == sizeof(val)) 
-  {
-    printf("Read %x %x\n", val[0], val[1]);
-  }
-
-  if (ferror(fp))
-  {
-    perror("Error reading file");
-  }
-  else if (bytes_read > 0 && bytes_read < sizeof(val[0]))
-  {
-    printf("Warning: end of file with incomplete 2byte chunk (%zu bytes read)\n", bytes_read);
-  }
-
-  fclose(fp);
 
   return EXIT_SUCCESS;
 }
