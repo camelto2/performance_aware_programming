@@ -7,6 +7,7 @@ const char* eff_addr[8] = {"bx + si", "bx + di", "bp + si", "bp + di", "si", "di
 //define instructions
 const Instruction instruction_table[] = {
 { MOV_R_TF_RM, "mov", 0b10001000, 0b11111100, .has_modrm=1, .has_d_bit=1, .has_w_bit=1 },
+{ MOV_T_R,     "mov", 0b10110000, 0b11110000, .has_w_bit=1, .imm_type=2,  .reg_in_opcode=1},
 };
 
 const Instruction* lookup_instruction(uint8_t opcode, uint8_t modrm) {
@@ -47,8 +48,7 @@ void process8086(const uint8_t* data, const size_t count) {
     if (!instr)
     {
       printf("unknown instruction\n");
-      idx++;
-      continue;
+      exit(0);
     }
     //extract actual data
     instr_data.reg   = (instr->reg_in_opcode) ? (opcode & 0b00000111)      : 0;
@@ -64,6 +64,32 @@ void process8086(const uint8_t* data, const size_t count) {
       instr_data.mod = modrm >> 6 & 0b00000011;
       instr_data.reg = modrm >> 3 & 0b00000111;
       instr_data.rm  = modrm & 0b00000111;
+
+      if ((instr_data.mod == 0 && instr_data.rm == 6 ) || instr_data.mod == 2) {
+        uint16_t value = (uint16_t)data[idx] | (uint16_t)data[idx + 1] << 8;
+        instr_data.displacement = value;
+        idx += 2;
+      }
+      else if (instr_data.mod == 1) {
+        instr_data.displacement = data[idx++];
+      }
+    }
+
+    if (instr->imm_type == 1)
+      instr_data.immediate = data[idx++];
+    else if (instr->imm_type == 2) {
+      uint16_t value = (uint16_t)data[idx] | (uint16_t)data[idx + 1] << 8;
+      instr_data.immediate = value;
+      idx += 2;
+    }
+    else if (instr->imm_type == 3) {
+      if (instr_data.w_bit) {
+        uint16_t value = (uint16_t)data[idx] | (uint16_t)data[idx + 1] << 8;
+        instr_data.immediate = value;
+        idx += 2;
+      }
+      else
+        instr_data.immediate = data[idx++];
     }
     print_instruction(&instr_data);
   }
@@ -72,7 +98,24 @@ void process8086(const uint8_t* data, const size_t count) {
 void print_instruction(const FullInstructionData* instr_data) {
   printf("%s ", instr_data->instr.mnemonic);
 
-  const char* src = (instr_data->w_bit) ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
-  const char* dst = (instr_data->w_bit) ? reg_16[instr_data->rm] : reg_8[instr_data->rm];
-  printf("%s, %s\n", dst, src);
+  switch(instr_data->mod) {
+    case 0: {
+      const char* reg_txt = (instr_data->w_bit) ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
+      const char* mem_txt = eff_addr[instr_data->rm];
+      const char* dst = (instr_data->d_bit) ? reg_txt : mem_txt;
+      const char* src = (instr_data->d_bit) ? mem_txt : reg_txt;
+      printf("%s, %s\n", dst, src);
+      break;
+    }
+    case 1:
+      break;
+    case 2:
+      break;
+    case 3: {
+      const char* src = (instr_data->w_bit) ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
+      const char* dst = (instr_data->w_bit) ? reg_16[instr_data->rm] : reg_8[instr_data->rm];
+      printf("%s, %s\n", dst, src);
+      break;
+    }
+  }
 }

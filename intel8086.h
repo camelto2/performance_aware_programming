@@ -49,6 +49,9 @@ typedef struct {
   uint8_t reg;
   uint8_t mod;
   uint8_t rm;
+
+  uint16_t displacement;
+  uint16_t immediate;
 } FullInstructionData;
 
 extern const Instruction instruction_table[];
