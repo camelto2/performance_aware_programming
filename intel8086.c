@@ -114,8 +114,34 @@ void print_instruction(const FullInstructionData* instr_data) {
   }
 
   if (instr_data->instr.has_modrm) {
-    const char* src = (instr_data->w_bit) ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
-    const char* dst = (instr_data->w_bit) ? reg_16[instr_data->rm] : reg_8[instr_data->rm];
-    printf("%s, %s\n", dst, src);
+    if (instr_data->mod == 0) {
+      const char* reg = (instr_data->w_bit) ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
+      const char* mem  = eff_addr[instr_data->rm];
+      if (instr_data->d_bit)
+        printf("%s, [%s]\n", reg, mem);
+      else
+        printf("%s, [%s]\n", mem, reg);
+    }
+    else if (instr_data->mod == 1) {
+      const char* reg = (instr_data->w_bit) ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
+      const char* mem  = eff_addr[instr_data->rm];
+      if (instr_data->d_bit)
+        printf("%s, [%s + %" PRIi8 "]\n", reg, mem, instr_data->immediate);
+      else
+        printf("[%s + %" PRIi8 "], %s\n", mem, instr_data->immediate, reg);
+    }
+    else if (instr_data->mod == 2) {
+      const char* reg = (instr_data->w_bit) ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
+      const char* mem  = eff_addr[instr_data->rm];
+      if (instr_data->d_bit)
+        printf("%s, [%s + %" PRIi16 "]\n", reg, mem, instr_data->immediate);
+      else
+        printf("[%s + %" PRIi16 "], %s\n", mem, instr_data->immediate, reg);
+    }
+    else if (instr_data->mod == 3) {
+      const char* src = (instr_data->w_bit) ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
+      const char* dst = (instr_data->w_bit) ? reg_16[instr_data->rm] : reg_8[instr_data->rm];
+      printf("%s, %s\n", dst, src);
+    }
   }
 }
