@@ -60,6 +60,7 @@ void process8086(const uint8_t* data, const size_t count) {
     //now consume next bytes, if needed
     instr_data.rm  = 0;
     instr_data.mod = 0;
+    instr_data.displacement = 0;
     if (instr->has_modrm)
     {
       uint8_t modrm = data[idx++];
@@ -77,6 +78,7 @@ void process8086(const uint8_t* data, const size_t count) {
       }
     }
 
+    instr_data.immediate = 0;
     if (instr->imm_type == 1)
       instr_data.immediate = data[idx++];
     else if (instr->imm_type == 2) {
@@ -114,34 +116,29 @@ void print_instruction(const FullInstructionData* instr_data) {
   }
 
   if (instr_data->instr.has_modrm) {
-    if (instr_data->mod == 0) {
-      const char* reg = (instr_data->w_bit) ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
-      const char* mem  = eff_addr[instr_data->rm];
+    const char* r_name = (instr_data->w_bit) ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
+    char rm_name[64]; // should be large enough
+
+    //handle print variants and special case
+    if (instr_data->mod == 3) 
+      sprintf(rm_name, "%s", (instr_data->w_bit) ? reg_16[instr_data->rm] : reg_8[instr_data->rm]);
+    else {
+      //special case, doesn't print rm register
+      if (instr_data->mod == 0 && instr_data->rm == 6)
+        sprintf(rm_name, "[%" PRIi16 "]", instr_data->displacement);
+      else if (instr_data->displacement == 0)
+        sprintf(rm_name, "[%s]", eff_addr[instr_data->rm]);
+      else {
+        if (instr_data->mod == 1) 
+          sprintf(rm_name, "[%s + %" PRIi8 "]", eff_addr[instr_data->rm], instr_data->displacement);
+        else
+          sprintf(rm_name, "[%s + %" PRIi16 "]", eff_addr[instr_data->rm], instr_data->displacement);
+      }
+
       if (instr_data->d_bit)
-        printf("%s, [%s]\n", reg, mem);
+        printf("%s, %s\n", r_name, rm_name);
       else
-        printf("%s, [%s]\n", mem, reg);
-    }
-    else if (instr_data->mod == 1) {
-      const char* reg = (instr_data->w_bit) ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
-      const char* mem  = eff_addr[instr_data->rm];
-      if (instr_data->d_bit)
-        printf("%s, [%s + %" PRIi8 "]\n", reg, mem, instr_data->immediate);
-      else
-        printf("[%s + %" PRIi8 "], %s\n", mem, instr_data->immediate, reg);
-    }
-    else if (instr_data->mod == 2) {
-      const char* reg = (instr_data->w_bit) ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
-      const char* mem  = eff_addr[instr_data->rm];
-      if (instr_data->d_bit)
-        printf("%s, [%s + %" PRIi16 "]\n", reg, mem, instr_data->immediate);
-      else
-        printf("[%s + %" PRIi16 "], %s\n", mem, instr_data->immediate, reg);
-    }
-    else if (instr_data->mod == 3) {
-      const char* src = (instr_data->w_bit) ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
-      const char* dst = (instr_data->w_bit) ? reg_16[instr_data->rm] : reg_8[instr_data->rm];
-      printf("%s, %s\n", dst, src);
+        printf("%s, %s\n", rm_name, r_name);
     }
   }
 }
