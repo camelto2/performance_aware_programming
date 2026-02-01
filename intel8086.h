@@ -5,50 +5,58 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-// Structure to represent the first byte of an 8086 instruction
-typedef struct {
-    uint8_t w     : 1; // Width bit (least significant bit)
-    uint8_t d     : 1; // Direction bit
-    uint8_t opcode: 6; // Opcode (most significant 6 bits)
-} InstructionByte;
-
-// Structure to represent the second byte (ModR/M)
-typedef struct {
-    uint8_t rm  : 3; // R/M field (least significant 3 bits)
-    uint8_t reg : 3; // REG field
-    uint8_t mod : 2; // MOD field (most significant 2 bits)
-} ModRMByte;
-
-// Union to easily cast raw bytes to the structured format
-typedef union {
-    uint8_t raw_byte;
-    InstructionByte fields;
-} InstructionUnion;
-
-typedef union {
-    uint8_t raw_byte;
-    ModRMByte fields;
-} ModRMUnion;
-
 //registers
-extern const char* reg_8[];
-extern const char* reg_16[];
+//extern const char* reg_8[];
+//extern const char* reg_16[];
+//extern const char* eff_addr[];
 
-//instructions
+//instructions 
 typedef enum 
 {
-  MOV
+  MOV_R_TF_RM,
+  MOV_T_RM,
+  MOV_T_R,
+  MOV_M_T_A,
+  MOV_A_T_M,
+  NUM_INSTR
 } InstructionType;
 
-typedef struct 
+typedef struct
 {
-  InstructionType type;
-  const char* str;
-  uint8_t opcode;
-} OpcodeEntry;
-extern const OpcodeEntry opcode_table[];
-const OpcodeEntry* lookup_opcode(uint8_t opcode);
+    InstructionType type;
+    const char* mnemonic;
+    uint8_t opcode;           // Base opcode
+    uint8_t opcode_mask;      // Which bits must match 
+                              
+    // Flags
+    uint8_t has_modrm     : 1; // Needs ModR/M byte
+    uint8_t has_d_bit     : 1;    // Direction bit is in opcode
+    uint8_t has_w_bit     : 1;    // Width bit is in opcode
+    uint8_t has_s_bit     : 1;    // Sign-extend bit (for immediate data)
+    uint8_t imm_type      : 2;     // 0=none, 1=byte, 2=word, 3=depends on W bit
+    
+    //reg can be in opcode for some instructions, and can also be necessary to actually decode instruction
+    uint8_t modrm_reg           : 3; // Actually store the modrm register
+    uint8_t modrm_reg_is_opcode : 1; // Modrm reg used to define actual opcode
+    uint8_t reg_in_opcode       : 1; // Register in first opcode byte
+} Instruction;
+
+typedef struct {
+  Instruction instr;
+  uint8_t w_bit;
+  uint8_t d_bit;
+  uint8_t s_bit;
+  uint8_t reg;
+  uint8_t mod;
+  uint8_t rm;
+} FullInstructionData;
+
+extern const Instruction instruction_table[];
+
+const Instruction* lookup_instruction(uint8_t opcode, uint8_t modrm);
 
 void process8086(const uint8_t* data, const size_t count);
+
+void print_instruction(const FullInstructionData* instr);
 
 #endif

@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include "intel8086.h"
 
+#include "intel8086.c"
+
 uint8_t* read_binary_file(const char* filename, size_t* count_out)
 {
   FILE* fp = fopen(filename, "rb");
