@@ -7,8 +7,9 @@ const char* eff_addr[8] = {"bx + si", "bx + di", "bp + si", "bp + di", "si", "di
 
 //define instructions
 const Instruction instruction_table[] = {
-{ MOV_R_TF_RM, "mov", 0b10001000, 0b11111100, .has_modrm=1, .has_d_bit=1, .has_w_bit=1 },
-{ MOV_T_R,     "mov", 0b10110000, 0b11110000, .has_w_bit=1, .imm_type=3,  .reg_in_opcode=1},
+  { MOV_R_TF_RM, "mov", 0b10001000, 0b11111100, .has_modrm=1, .has_d_bit=1, .has_w_bit=1 },
+  { MOV_T_R,     "mov", 0b10110000, 0b11110000, .has_w_bit=1, .imm_type=3,  .reg_in_opcode=1},
+  { MOV_T_RM,    "mov", 0b11000110, 0b11111110, .has_modrm=1, .imm_type=3,  .has_w_bit=1 },
 };
 
 const Instruction* lookup_instruction(uint8_t opcode, uint8_t modrm) {
@@ -107,11 +108,12 @@ void print_instruction(const FullInstructionData* instr_data) {
     const char* dst = instr_data->w_bit ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
     printf("%s, ", dst);
     if (instr_data->w_bit)
-      printf("%" PRIu16 "\n", instr_data->immediate);
+      printf("%" PRIi16 "\n", instr_data->immediate);
     else
-      printf("%" PRIu8 "\n", instr_data->immediate);
+      printf("%" PRIi8 "\n", instr_data->immediate);
   }
-  else {
+
+  if (instr_data->instr.has_modrm) {
     const char* src = (instr_data->w_bit) ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
     const char* dst = (instr_data->w_bit) ? reg_16[instr_data->rm] : reg_8[instr_data->rm];
     printf("%s, %s\n", dst, src);
