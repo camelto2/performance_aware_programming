@@ -16,8 +16,6 @@ typedef enum
   MOV_R_TF_RM,
   MOV_T_RM,
   MOV_T_R,
-  MOV_M_T_A,
-  MOV_A_T_M,
   NUM_INSTR
 } InstructionType;
 
