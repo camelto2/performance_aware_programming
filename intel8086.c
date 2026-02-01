@@ -10,6 +10,8 @@ const Instruction instruction_table[] = {
   { MOV_R_TF_RM, "mov", 0b10001000, 0b11111100, .has_modrm=1, .has_d_bit=1, .has_w_bit=1 },
   { MOV_T_RM,    "mov", 0b11000110, 0b11111110, .has_modrm=1, .imm_type=3,  .has_w_bit=1 },
   { MOV_T_R,     "mov", 0b10110000, 0b11110000, .has_w_bit=1, .imm_type=3,  .reg_in_opcode=1},
+  { MOV_M_T_A,   "mov", 0b10100000, 0b11111110, .has_w_bit=1, .imm_type=2, .has_d_bit=1}, 
+  { MOV_A_T_M,   "mov", 0b10100010, 0b11111110, .has_w_bit=1, .imm_type=2, .has_d_bit=1}, 
 };
 
 const Instruction* lookup_instruction(uint8_t opcode, uint8_t modrm) {
@@ -113,8 +115,7 @@ void print_instruction(const FullInstructionData* instr_data) {
     else
       printf("%" PRIi8 "\n", instr_data->immediate);
   }
-
-  if (instr_data->instr.has_modrm && instr_data->immediate == 0) {
+  else if (instr_data->instr.has_modrm && instr_data->immediate == 0) {
     const char* r_name = (instr_data->w_bit) ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
     char rm_name[64]; // should be large enough
 
@@ -166,4 +167,14 @@ void print_instruction(const FullInstructionData* instr_data) {
       printf("%s, %s\n", dst, imm);
     }
   }
+  else if (!instr_data->instr.has_modrm && instr_data->immediate > 0)
+  {
+    //immediates to/from accumulator
+    const char* reg = (instr_data->w_bit) ? reg_16[0] : reg_8[0];
+    if (instr_data->d_bit)
+      printf("[%" PRIi16"], %s\n", instr_data->immediate, reg);
+    else
+      printf("%s, [%" PRIi16"]\n", reg, instr_data->immediate);
+  }
+
 }

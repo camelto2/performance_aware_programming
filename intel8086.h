@@ -6,9 +6,9 @@
 #include <stdint.h>
 
 //registers
-//extern const char* reg_8[];
-//extern const char* reg_16[];
-//extern const char* eff_addr[];
+extern const char* reg_8[];
+extern const char* reg_16[];
+extern const char* eff_addr[];
 
 //instructions 
 typedef enum 
@@ -16,6 +16,8 @@ typedef enum
   MOV_R_TF_RM,
   MOV_T_RM,
   MOV_T_R,
+  MOV_M_T_A,
+  MOV_A_T_M,
   NUM_INSTR
 } InstructionType;
 
