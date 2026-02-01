@@ -1,4 +1,5 @@
 #include "intel8086.h"
+#include <inttypes.h>
 
 const char* reg_8[8]    = {"al", "cl", "dl", "bl", "ah", "ch", "dh", "bh"};
 const char* reg_16[8]   = {"ax", "cx", "dx", "bx", "sp", "bp", "si", "di"};
@@ -7,7 +8,7 @@ const char* eff_addr[8] = {"bx + si", "bx + di", "bp + si", "bp + di", "si", "di
 //define instructions
 const Instruction instruction_table[] = {
 { MOV_R_TF_RM, "mov", 0b10001000, 0b11111100, .has_modrm=1, .has_d_bit=1, .has_w_bit=1 },
-{ MOV_T_R,     "mov", 0b10110000, 0b11110000, .has_w_bit=1, .imm_type=2,  .reg_in_opcode=1},
+{ MOV_T_R,     "mov", 0b10110000, 0b11110000, .has_w_bit=1, .imm_type=3,  .reg_in_opcode=1},
 };
 
 const Instruction* lookup_instruction(uint8_t opcode, uint8_t modrm) {
@@ -52,8 +53,8 @@ void process8086(const uint8_t* data, const size_t count) {
     }
     //extract actual data
     instr_data.reg   = (instr->reg_in_opcode) ? (opcode & 0b00000111)      : 0;
-    instr_data.w_bit = (instr->has_w_bit)     ? (opcode & 0b00000001)      : 0;
     instr_data.d_bit = (instr->has_d_bit)     ? (opcode >> 1 & 0b00000001) : 0;
+    instr_data.w_bit = (instr->has_w_bit) ? ( instr->reg_in_opcode ? (opcode >> 3 & 0b00000001) : (opcode & 0b00000001 )) : 0;
 
     //now consume next bytes, if needed
     instr_data.rm  = 0;
@@ -89,7 +90,9 @@ void process8086(const uint8_t* data, const size_t count) {
         idx += 2;
       }
       else
+      {
         instr_data.immediate = data[idx++];
+      }
     }
     print_instruction(&instr_data);
   }
@@ -98,24 +101,19 @@ void process8086(const uint8_t* data, const size_t count) {
 void print_instruction(const FullInstructionData* instr_data) {
   printf("%s ", instr_data->instr.mnemonic);
 
-  switch(instr_data->mod) {
-    case 0: {
-      const char* reg_txt = (instr_data->w_bit) ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
-      const char* mem_txt = eff_addr[instr_data->rm];
-      const char* dst = (instr_data->d_bit) ? reg_txt : mem_txt;
-      const char* src = (instr_data->d_bit) ? mem_txt : reg_txt;
-      printf("%s, %s\n", dst, src);
-      break;
-    }
-    case 1:
-      break;
-    case 2:
-      break;
-    case 3: {
-      const char* src = (instr_data->w_bit) ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
-      const char* dst = (instr_data->w_bit) ? reg_16[instr_data->rm] : reg_8[instr_data->rm];
-      printf("%s, %s\n", dst, src);
-      break;
-    }
+  // handling print for [opcode w reg]
+  if (instr_data->instr.reg_in_opcode)
+  {
+    const char* dst = instr_data->w_bit ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
+    printf("%s, ", dst);
+    if (instr_data->w_bit)
+      printf("%" PRIu16 "\n", instr_data->immediate);
+    else
+      printf("%" PRIu8 "\n", instr_data->immediate);
+  }
+  else {
+    const char* src = (instr_data->w_bit) ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
+    const char* dst = (instr_data->w_bit) ? reg_16[instr_data->rm] : reg_8[instr_data->rm];
+    printf("%s, %s\n", dst, src);
   }
 }
