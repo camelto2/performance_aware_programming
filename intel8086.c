@@ -70,11 +70,11 @@ void process8086(const uint8_t* data, const size_t count) {
 
       if ((instr_data.mod == 0 && instr_data.rm == 6 ) || instr_data.mod == 2) {
         uint16_t value = (uint16_t)data[idx] | (uint16_t)data[idx + 1] << 8;
-        instr_data.displacement = value;
+        instr_data.displacement = (int16_t)value;
         idx += 2;
       }
       else if (instr_data.mod == 1) {
-        instr_data.displacement = data[idx++];
+        instr_data.displacement = (int8_t)data[idx++];
       }
     }
 
@@ -83,18 +83,18 @@ void process8086(const uint8_t* data, const size_t count) {
       instr_data.immediate = data[idx++];
     else if (instr->imm_type == 2) {
       uint16_t value = (uint16_t)data[idx] | (uint16_t)data[idx + 1] << 8;
-      instr_data.immediate = value;
+      instr_data.immediate = (int16_t)value;
       idx += 2;
     }
     else if (instr->imm_type == 3) {
       if (instr_data.w_bit) {
         uint16_t value = (uint16_t)data[idx] | (uint16_t)data[idx + 1] << 8;
-        instr_data.immediate = value;
+        instr_data.immediate = (int16_t)value;
         idx += 2;
       }
       else
       {
-        instr_data.immediate = data[idx++];
+        instr_data.immediate = (int8_t)data[idx++];
       }
     }
     print_instruction(&instr_data);
@@ -129,16 +129,16 @@ void print_instruction(const FullInstructionData* instr_data) {
       else if (instr_data->displacement == 0)
         sprintf(rm_name, "[%s]", eff_addr[instr_data->rm]);
       else {
-        if (instr_data->mod == 1) 
-          sprintf(rm_name, "[%s + %" PRIi8 "]", eff_addr[instr_data->rm], instr_data->displacement);
+        int16_t displ = instr_data->displacement;
+        if (displ > 0)
+          sprintf(rm_name, "[%s + %" PRIi8 "]", eff_addr[instr_data->rm], displ);
         else
-          sprintf(rm_name, "[%s + %" PRIi16 "]", eff_addr[instr_data->rm], instr_data->displacement);
+          sprintf(rm_name, "[%s - %" PRIi16 "]", eff_addr[instr_data->rm], -displ);
       }
-
-      if (instr_data->d_bit)
-        printf("%s, %s\n", r_name, rm_name);
-      else
-        printf("%s, %s\n", rm_name, r_name);
     }
+    if (instr_data->d_bit)
+      printf("%s, %s\n", r_name, rm_name);
+    else
+      printf("%s, %s\n", rm_name, r_name);
   }
 }
