@@ -75,5 +75,4 @@ void print_instruction(const FullInstructionData* instr_data) {
   const char* src = (instr_data->w_bit) ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
   const char* dst = (instr_data->w_bit) ? reg_16[instr_data->rm] : reg_8[instr_data->rm];
   printf("%s, %s\n", dst, src);
-  printf("\n");
 }
