@@ -51,6 +51,10 @@ typedef struct {
   //outputs are signed
   int16_t displacement;
   int16_t immediate;
+
+  //raw bytes
+  uint8_t raw_op_byte;
+  uint8_t raw_modrm_byte;
 } FullInstructionData;
 
 extern const Instruction instruction_table[];

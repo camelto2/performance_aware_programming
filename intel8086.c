@@ -51,6 +51,7 @@ void process8086(const uint8_t* data, const size_t count) {
     }
     FullInstructionData instr_data;
     instr_data.instr = *instr;
+    instr_data.raw_op_byte = opcode;
 
     //extract actual data
     instr_data.reg   = (instr->reg_in_opcode) ? (opcode & 0b00000111)      : 0;
@@ -65,6 +66,7 @@ void process8086(const uint8_t* data, const size_t count) {
     if (instr->has_modrm)
     {
       uint8_t modrm = data[idx++];
+      instr_data.raw_modrm_byte = modrm;
       instr_data.mod = modrm >> 6 & 0b00000011;
       instr_data.reg = modrm >> 3 & 0b00000111;
       instr_data.rm  = modrm & 0b00000111;
