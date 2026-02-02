@@ -56,6 +56,7 @@ void process8086(const uint8_t* data, const size_t count) {
     instr_data.reg   = (instr->reg_in_opcode) ? (opcode & 0b00000111)      : 0;
     instr_data.d_bit = (instr->has_d_bit)     ? (opcode >> 1 & 0b00000001) : 0;
     instr_data.w_bit = (instr->has_w_bit) ? ( instr->reg_in_opcode ? (opcode >> 3 & 0b00000001) : (opcode & 0b00000001 )) : 0;
+    instr_data.s_bit = (instr->has_s_bit)     ? (opcode >> 1 & 0b00000001) : 0;
 
     //now consume next bytes, if needed
     instr_data.rm  = 0;
@@ -87,15 +88,15 @@ void process8086(const uint8_t* data, const size_t count) {
       idx += 2;
     }
     else if (instr->imm_type == 3) {
-      if (instr_data.w_bit) {
+      if (instr_data.instr.has_s_bit & instr_data.s_bit & instr_data.w_bit) // s1, w1
+        instr_data.immediate = (int8_t)data[idx++];
+      else if (instr_data.w_bit) { // w1, and s0 or no s
         uint16_t value = (uint16_t)data[idx] | (uint16_t)data[idx + 1] << 8;
         instr_data.immediate = (int16_t)value;
         idx += 2;
       }
       else
-      {
         instr_data.immediate = (int8_t)data[idx++];
-      }
     }
     print_instruction(&instr_data);
   }
