@@ -34,10 +34,11 @@ static void format_rm(char* rm, size_t size, const FullInstructionData* instr_da
       snprintf(rm, size, "[%s]", eff_addr[instr_data->rm]);
     else {
       int16_t displ = instr_data->displacement;
+      const char* add = eff_addr[instr_data->rm];
       if (displ > 0)
-        snprintf(rm, size, "[%s + %" PRIi16 "]", displ);
+        snprintf(rm, size, "[%s + %" PRIi16 "]", add, displ);
       else
-        snprintf(rm, size, "[%s - %" PRIi16 "]", -displ);
+        snprintf(rm, size, "[%s - %" PRIi16 "]", add, -displ);
     }
   }
 }
