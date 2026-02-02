@@ -69,8 +69,9 @@ static void print_reg_tofrom_rm(const FullInstructionData* instr_data)
 void print_instruction(const FullInstructionData* instr_data) {
 #ifdef DEBUG
   printf("DEBUG op modrm displ imm: 0x%2x 0x%2x 0x%4x 0x%4x\n", instr_data->raw_op_byte, instr_data->raw_modrm_byte, instr_data->displacement, instr_data->immediate);
+  printf("%i:  ", instr_data->instr.type);
 #endif
-  printf("%i:  %s ", instr_data->instr.type, instr_data->instr.mnemonic);
+  printf("%s ", instr_data->instr.mnemonic);
 
   if (instr_data->instr.reg_in_opcode)
     print_imm_to_reg(instr_data);
