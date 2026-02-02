@@ -5,10 +5,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-//registers
-extern const char* reg_8[];
-extern const char* reg_16[];
-extern const char* eff_addr[];
 
 //instructions 
 typedef enum 
@@ -18,6 +14,8 @@ typedef enum
   MOV_T_R,
   MOV_M_T_A,
   MOV_A_T_M,
+  ADD,
+  ADD_T_RM,
   NUM_INSTR
 } InstructionType;
 
@@ -60,7 +58,5 @@ extern const Instruction instruction_table[];
 const Instruction* lookup_instruction(uint8_t opcode, uint8_t modrm);
 
 void process8086(const uint8_t* data, const size_t count);
-
-void print_instruction(const FullInstructionData* instr);
 
 #endif

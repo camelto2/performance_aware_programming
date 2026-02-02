@@ -1,17 +1,15 @@
 #include "intel8086.h"
-#include <inttypes.h>
-
-const char* reg_8[8]    = {"al", "cl", "dl", "bl", "ah", "ch", "dh", "bh"};
-const char* reg_16[8]   = {"ax", "cx", "dx", "bx", "sp", "bp", "si", "di"};
-const char* eff_addr[8] = {"bx + si", "bx + di", "bp + si", "bp + di", "si", "di", "bp", "bx"};
+#include "intel8086_text.h"
 
 //define instructions
 const Instruction instruction_table[] = {
   { MOV_R_TF_RM, "mov", 0b10001000, 0b11111100, .has_modrm=1, .has_d_bit=1, .has_w_bit=1 },
   { MOV_T_RM,    "mov", 0b11000110, 0b11111110, .has_modrm=1, .imm_type=3,  .has_w_bit=1 },
   { MOV_T_R,     "mov", 0b10110000, 0b11110000, .has_w_bit=1, .imm_type=3,  .reg_in_opcode=1},
-  { MOV_M_T_A,   "mov", 0b10100000, 0b11111110, .has_w_bit=1, .imm_type=2, .has_d_bit=1}, 
-  { MOV_A_T_M,   "mov", 0b10100010, 0b11111110, .has_w_bit=1, .imm_type=2, .has_d_bit=1}, 
+  { MOV_M_T_A,   "mov", 0b10100000, 0b11111110, .has_w_bit=1, .imm_type=2,  .has_d_bit=1}, 
+  { MOV_A_T_M,   "mov", 0b10100010, 0b11111110, .has_w_bit=1, .imm_type=2,  .has_d_bit=1}, 
+  { ADD,         "add", 0b00000000, 0b11111100, .has_w_bit=1, .has_d_bit=1, .has_modrm=1},
+  { ADD_T_RM,    "add", 0b10000000, 0b11111100, .has_s_bit=1, .has_w_bit=1, .has_modrm=1, .modrm_reg_is_opcode=1, .modrm_reg=0, .imm_type=3},
 };
 
 const Instruction* lookup_instruction(uint8_t opcode, uint8_t modrm) {
@@ -46,14 +44,14 @@ void process8086(const uint8_t* data, const size_t count) {
     uint8_t opcode = data[idx++]; // consume opcode
     //lookup instruction, just peek into data[idx] don't consume
     const Instruction* instr = lookup_instruction(opcode, (idx < count) ? data[idx] : 0);
-    FullInstructionData instr_data;
-    instr_data.instr = *instr;
-
     if (!instr)
     {
       printf("unknown instruction\n");
       exit(0);
     }
+    FullInstructionData instr_data;
+    instr_data.instr = *instr;
+
     //extract actual data
     instr_data.reg   = (instr->reg_in_opcode) ? (opcode & 0b00000111)      : 0;
     instr_data.d_bit = (instr->has_d_bit)     ? (opcode >> 1 & 0b00000001) : 0;
@@ -103,78 +101,3 @@ void process8086(const uint8_t* data, const size_t count) {
   }
 }
 
-void print_instruction(const FullInstructionData* instr_data) {
-  printf("%i:  %s ", instr_data->instr.type, instr_data->instr.mnemonic);
-
-  if (instr_data->instr.reg_in_opcode)
-  {
-    const char* dst = instr_data->w_bit ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
-    printf("%s, ", dst);
-    if (instr_data->w_bit)
-      printf("%" PRIi16 "\n", instr_data->immediate);
-    else
-      printf("%" PRIi8 "\n", instr_data->immediate);
-  }
-  else if (instr_data->instr.has_modrm && instr_data->immediate == 0) {
-    const char* r_name = (instr_data->w_bit) ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
-    char rm_name[64]; // should be large enough
-
-    //handle print variants and special case
-    if (instr_data->mod == 3) 
-      snprintf(rm_name, sizeof(rm_name), "%s", (instr_data->w_bit) ? reg_16[instr_data->rm] : reg_8[instr_data->rm]);
-    else {
-      //special case, doesn't print rm register
-      if (instr_data->mod == 0 && instr_data->rm == 6)
-        snprintf(rm_name, sizeof(rm_name), "[%" PRIi16 "]", instr_data->displacement);
-      else if (instr_data->displacement == 0)
-        snprintf(rm_name, sizeof(rm_name), "[%s]", eff_addr[instr_data->rm]);
-      else {
-        int16_t displ = instr_data->displacement;
-        if (displ > 0)
-          snprintf(rm_name, sizeof(rm_name), "[%s + %" PRIi16 "]", eff_addr[instr_data->rm], displ);
-        else
-          snprintf(rm_name, sizeof(rm_name), "[%s - %" PRIi16 "]", eff_addr[instr_data->rm], -displ);
-      }
-    }
-    if (instr_data->d_bit)
-      printf("%s, %s\n", r_name, rm_name);
-    else
-      printf("%s, %s\n", rm_name, r_name);
-  }
-  else if (instr_data->instr.has_modrm && instr_data->immediate > 0)
-  {
-    char dst[64];
-    char imm[64];
-    if (instr_data->mod == 3)
-      snprintf(dst, sizeof(dst), "%s", instr_data->w_bit ? reg_16[instr_data->rm] : reg_8[instr_data->rm]);
-    else {
-      //special case, doesn't print rm register
-      if (instr_data->mod == 0 && instr_data->rm == 6)
-        snprintf(dst, sizeof(dst), "[%" PRIi16 "]", instr_data->displacement);
-      else if (instr_data->displacement == 0)
-        snprintf(dst, sizeof(dst), "[%s]", eff_addr[instr_data->rm]);
-      else {
-        int16_t displ = instr_data->displacement;
-        if (displ > 0)
-          snprintf(dst, sizeof(dst), "[%s + %" PRIi16 "]", eff_addr[instr_data->rm], displ);
-        else
-          snprintf(dst, sizeof(dst), "[%s - %" PRIi16 "]", eff_addr[instr_data->rm], -displ);
-      }
-      if (instr_data->w_bit) 
-        snprintf(imm, sizeof(imm), "word %" PRIi16, instr_data->immediate);
-      else
-        snprintf(imm, sizeof(imm), "byte %" PRIi8, instr_data->immediate);
-      printf("%s, %s\n", dst, imm);
-    }
-  }
-  else if (!instr_data->instr.has_modrm && instr_data->immediate > 0)
-  {
-    //immediates to/from accumulator
-    const char* reg = (instr_data->w_bit) ? reg_16[0] : reg_8[0];
-    if (instr_data->d_bit)
-      printf("[%" PRIi16"], %s\n", instr_data->immediate, reg);
-    else
-      printf("%s, [%" PRIi16"]\n", reg, instr_data->immediate);
-  }
-
-}

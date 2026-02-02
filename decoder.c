@@ -2,8 +2,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include "intel8086.h"
+#include "intel8086_text.h"
 
 #include "intel8086.c"
+#include "intel8086_text.c"
 
 uint8_t* read_binary_file(const char* filename, size_t* count_out)
 {
