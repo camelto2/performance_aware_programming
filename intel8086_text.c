@@ -73,7 +73,7 @@ void print_instruction(const FullInstructionData* instr_data) {
     print_acc_tofrom_imm(instr_data);
   else if (instr_data->instr.has_modrm)
   {
-    if (instr_data->immediate > 0)
+    if (instr_data->immediate)
       print_modrm_with_imm(instr_data);
     else
       print_reg_tofrom_rm(instr_data);
