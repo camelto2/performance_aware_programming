@@ -15,10 +15,15 @@ static void print_imm_to_reg(const FullInstructionData* instr_data)
 static void print_acc_tofrom_imm(const FullInstructionData* instr_data)
 {
   const char* reg = (instr_data->w_bit) ? reg_16[0] : reg_8[0];
-  if (instr_data->d_bit)
-    printf("[%" PRIi16"], %s\n", instr_data->immediate, reg);
+  char imm[64];
+  if (instr_data->instr.imm_is_mem)
+    snprintf(imm, sizeof(imm), "[%"PRIi16"]", instr_data->immediate);
   else
-    printf("%s, [%" PRIi16"]\n", reg, instr_data->immediate);
+    snprintf(imm, sizeof(imm), "%"PRIi16, instr_data->immediate);
+  if (instr_data->d_bit)
+    printf("%s, %s\n", imm, reg);
+  else
+    printf("%s, %s\n", reg, imm);
 }
 
 static void format_rm(char* rm, size_t size, const FullInstructionData* instr_data)
@@ -75,7 +80,7 @@ void print_instruction(const FullInstructionData* instr_data) {
 
   if (instr_data->instr.reg_in_opcode)
     print_imm_to_reg(instr_data);
-  else if (!instr_data->instr.has_modrm && instr_data->instr.imm_type == 2)
+  else if (!instr_data->instr.has_modrm && instr_data->instr.imm_type > 0)
     print_acc_tofrom_imm(instr_data);
   else if (instr_data->instr.has_modrm)
   {

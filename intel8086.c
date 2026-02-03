@@ -6,10 +6,11 @@ const Instruction instruction_table[] = {
   { MOV_R_TF_RM, "mov", 0b10001000, 0b11111100, .has_modrm=1, .has_d_bit=1, .has_w_bit=1 },
   { MOV_T_RM,    "mov", 0b11000110, 0b11111110, .has_modrm=1, .imm_type=3,  .has_w_bit=1 },
   { MOV_T_R,     "mov", 0b10110000, 0b11110000, .has_w_bit=1, .imm_type=3,  .reg_in_opcode=1},
-  { MOV_M_T_A,   "mov", 0b10100000, 0b11111110, .has_w_bit=1, .imm_type=2,  .has_d_bit=1}, 
-  { MOV_A_T_M,   "mov", 0b10100010, 0b11111110, .has_w_bit=1, .imm_type=2,  .has_d_bit=1}, 
+  { MOV_M_T_A,   "mov", 0b10100000, 0b11111110, .has_w_bit=1, .imm_type=2,  .has_d_bit=1, .imm_is_mem=1}, 
+  { MOV_A_T_M,   "mov", 0b10100010, 0b11111110, .has_w_bit=1, .imm_type=2,  .has_d_bit=1, .imm_is_mem=1}, 
   { ADD,         "add", 0b00000000, 0b11111100, .has_w_bit=1, .has_d_bit=1, .has_modrm=1},
   { ADD_T_RM,    "add", 0b10000000, 0b11111100, .has_s_bit=1, .has_w_bit=1, .has_modrm=1, .modrm_reg_is_opcode=1, .modrm_reg=0, .imm_type=3},
+  { ADD_T_A,     "add", 0b00000100, 0b11111110, .has_w_bit=1, .imm_type=3 }
 };
 
 const Instruction* lookup_instruction(uint8_t opcode, uint8_t modrm) {
@@ -90,7 +91,7 @@ void process8086(const uint8_t* data, const size_t count) {
       idx += 2;
     }
     else if (instr->imm_type == 3) {
-      if (instr_data.instr.has_s_bit & instr_data.s_bit & instr_data.w_bit) // s1, w1
+      if (instr_data.instr.has_s_bit && instr_data.s_bit && instr_data.w_bit) // s1, w1
         instr_data.immediate = (int8_t)data[idx++];
       else if (instr_data.w_bit) { // w1, and s0 or no s
         uint16_t value = (uint16_t)data[idx] | (uint16_t)data[idx + 1] << 8;
