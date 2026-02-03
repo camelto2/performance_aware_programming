@@ -48,10 +48,10 @@ static void print_modrm_with_imm(const FullInstructionData* instr_data)
   char rm[64];
   format_rm(rm, sizeof(rm), instr_data);
   const char* size = instr_data->w_bit ? "word" : "byte";
-  if (instr_data->instr.has_s_bit)
-    printf("%s, %" PRIi16 "\n", rm, instr_data->immediate);
+  if (instr_data->mod != 3)
+    printf("%s %s, %" PRIi16 "\n", size, rm, instr_data->immediate);
   else
-    printf("%s, %s %" PRIi16 "\n", rm, size, instr_data->immediate);
+    printf("%s, %" PRIi16 "\n", rm, instr_data->immediate);
 }
 
 static void print_reg_tofrom_rm(const FullInstructionData* instr_data)
