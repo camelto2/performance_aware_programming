@@ -11,13 +11,13 @@ static void print_ip_increment(const FullInstructionData* instr_data)
 {
   int16_t offset = instr_data->immediate + 2;
   const char* sign = offset >= 0 ? "+" : "-";
-  printf("$%s%" PRIi16 "\n", sign, offset >= 0 ? offset : -offset);
+  printf("$%s%" PRIi16, sign, offset >= 0 ? offset : -offset);
 }
 
 static void print_imm_to_reg(const FullInstructionData* instr_data)
 {
   const char* dst = instr_data->w_bit ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
-  printf("%s, %" PRIi16 "\n", dst, instr_data->immediate);
+  printf("%s, %" PRIi16, dst, instr_data->immediate);
 }
 
 static void print_acc_tofrom_imm(const FullInstructionData* instr_data)
@@ -29,9 +29,9 @@ static void print_acc_tofrom_imm(const FullInstructionData* instr_data)
   else
     snprintf(imm, sizeof(imm), "%"PRIi16, instr_data->immediate);
   if (instr_data->d_bit)
-    printf("%s, %s\n", imm, reg);
+    printf("%s, %s", imm, reg);
   else
-    printf("%s, %s\n", reg, imm);
+    printf("%s, %s", reg, imm);
 }
 
 static void format_rm(char* rm, size_t size, const FullInstructionData* instr_data)
@@ -62,9 +62,9 @@ static void print_modrm_with_imm(const FullInstructionData* instr_data)
   format_rm(rm, sizeof(rm), instr_data);
   const char* size = instr_data->w_bit ? "word" : "byte";
   if (instr_data->mod != 3)
-    printf("%s %s, %" PRIi16 "\n", size, rm, instr_data->immediate);
+    printf("%s %s, %" PRIi16, size, rm, instr_data->immediate);
   else
-    printf("%s, %" PRIi16 "\n", rm, instr_data->immediate);
+    printf("%s, %" PRIi16, rm, instr_data->immediate);
 }
 
 static void print_reg_tofrom_rm(const FullInstructionData* instr_data)
@@ -74,12 +74,12 @@ static void print_reg_tofrom_rm(const FullInstructionData* instr_data)
 
   const char* reg = instr_data->w_bit ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
   if (instr_data->d_bit)
-    printf("%s, %s\n", reg, rm);
+    printf("%s, %s", reg, rm);
   else
-    printf("%s, %s\n", rm, reg);
+    printf("%s, %s", rm, reg);
 }
 
-void print_instruction(const FullInstructionData* instr_data) {
+void printInstruction(const FullInstructionData* instr_data) {
 #ifdef DEBUG
   printf("DEBUG op modrm displ imm: 0x%2x 0x%2x 0x%4x 0x%4x\n", instr_data->raw_op_byte, instr_data->raw_modrm_byte, instr_data->displacement, instr_data->immediate);
   printf("%i:  ", instr_data->instr.type);

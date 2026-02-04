@@ -6,7 +6,7 @@ extern const char* reg_8[];
 extern const char* reg_16[];
 extern const char* eff_addr[];
 
-void print_instruction(const FullInstructionData* instr);
+void printInstruction(const FullInstructionData* instr);
 
 
 #endif

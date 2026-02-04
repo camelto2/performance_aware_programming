@@ -64,9 +64,34 @@ uint8_t* read_binary_file(const char* filename, size_t* count_out)
   return data;
 }
 
+void decode(const uint8_t* data, const size_t count)
+{
+  printf("bits 16\n");
+  size_t idx = 0;
+  while (idx < count) 
+  {
+    FullInstructionData instr = decode8086Instruction(data, idx, count);
+    printInstruction(&instr);
+    printf("\n");
+    idx += instr.size;
+  }
+}
+
+void decodeAndSim(const uint8_t* data, const size_t count)
+{
+  printf("bits 16\n");
+  size_t idx = 0;
+  while (idx < count) 
+  {
+    FullInstructionData instr = decode8086Instruction(data, idx, count);
+    printInstruction(&instr);
+    printf("\n");
+    idx += instr.size;
+  }
+}
+
 int main(int argc, char* argv[])
 {
-
   if (argc != 2)
   {
     printf("Usage: %s <filename>\n", argv[0]);
@@ -79,7 +104,7 @@ int main(int argc, char* argv[])
 
   if (data != NULL)
   {
-    process8086(data, count);
+    decode(data, count);
     free(data);
   }
   else

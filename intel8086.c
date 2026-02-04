@@ -61,73 +61,65 @@ const Instruction* lookup_instruction(uint8_t opcode, uint8_t modrm) {
   return NULL;
 }
 
-void process8086(const uint8_t* data, const size_t count) {
-  //start decoding asm from binary
-  printf("bits 16\n\n");
-  size_t idx = 0;
-  while (idx < count)
+FullInstructionData decode8086Instruction(const uint8_t* data, const size_t idx, const size_t count) {
+  uint8_t opcode = data[idx]; // consume opcode
+  const Instruction* instr = lookup_instruction(opcode, (idx + 1 < count) ? data[idx + 1] : 0);
+  if (!instr)
   {
-
-    uint8_t opcode = data[idx++]; // consume opcode
-    //lookup instruction, just peek into data[idx] don't consume
-    const Instruction* instr = lookup_instruction(opcode, (idx < count) ? data[idx] : 0);
-    if (!instr)
-    {
-      printf("unknown instruction\n");
-      exit(0);
-    }
-    FullInstructionData instr_data;
-    instr_data.instr = *instr;
-    instr_data.raw_op_byte = opcode;
-
-    //extract actual data
-    instr_data.reg   = (instr->reg_in_opcode) ? (opcode & 0b00000111)      : 0;
-    instr_data.d_bit = (instr->has_d_bit)     ? (opcode >> 1 & 0b00000001) : 0;
-    instr_data.w_bit = (instr->has_w_bit) ? ( instr->reg_in_opcode ? (opcode >> 3 & 0b00000001) : (opcode & 0b00000001 )) : 0;
-    instr_data.s_bit = (instr->has_s_bit)     ? (opcode >> 1 & 0b00000001) : 0;
-
-    //now consume next bytes, if needed
-    instr_data.rm  = 0;
-    instr_data.mod = 0;
-    instr_data.displacement = 0;
-    if (instr->has_modrm)
-    {
-      uint8_t modrm = data[idx++];
-      instr_data.raw_modrm_byte = modrm;
-      instr_data.mod = modrm >> 6 & 0b00000011;
-      instr_data.reg = modrm >> 3 & 0b00000111;
-      instr_data.rm  = modrm & 0b00000111;
-
-      if ((instr_data.mod == 0 && instr_data.rm == 6 ) || instr_data.mod == 2) {
-        uint16_t value = (uint16_t)data[idx] | (uint16_t)data[idx + 1] << 8;
-        instr_data.displacement = (int16_t)value;
-        idx += 2;
-      }
-      else if (instr_data.mod == 1) {
-        instr_data.displacement = (int8_t)data[idx++];
-      }
-    }
-
-    instr_data.immediate = 0;
-    if (instr->imm_type == 1)
-      instr_data.immediate = (int8_t)data[idx++];
-    else if (instr->imm_type == 2) {
-      uint16_t value = (uint16_t)data[idx] | (uint16_t)data[idx + 1] << 8;
-      instr_data.immediate = (int16_t)value;
-      idx += 2;
-    }
-    else if (instr->imm_type == 3) {
-      if (instr_data.instr.has_s_bit && instr_data.s_bit && instr_data.w_bit) // s1, w1
-        instr_data.immediate = (int8_t)data[idx++];
-      else if (instr_data.w_bit) { // w1, and s0 or no s
-        uint16_t value = (uint16_t)data[idx] | (uint16_t)data[idx + 1] << 8;
-        instr_data.immediate = (int16_t)value;
-        idx += 2;
-      }
-      else
-        instr_data.immediate = (int8_t)data[idx++];
-    }
-    print_instruction(&instr_data);
+    printf("unknown instruction\n");
+    exit(0);
   }
+  FullInstructionData instr_data;
+  instr_data.instr = *instr;
+  instr_data.raw_op_byte = opcode;
+
+  //at least 1 byte
+  instr_data.size = 1;
+
+  //extract actual data
+  instr_data.reg   = (instr->reg_in_opcode) ? (opcode & 0b00000111)      : 0;
+  instr_data.d_bit = (instr->has_d_bit)     ? (opcode >> 1 & 0b00000001) : 0;
+  instr_data.w_bit = (instr->has_w_bit) ? ( instr->reg_in_opcode ? (opcode >> 3 & 0b00000001) : (opcode & 0b00000001 )) : 0;
+  instr_data.s_bit = (instr->has_s_bit)     ? (opcode >> 1 & 0b00000001) : 0;
+
+  //now consume next bytes, if needed
+  instr_data.rm  = 0;
+  instr_data.mod = 0;
+  instr_data.displacement = 0;
+  if (instr->has_modrm)
+  {
+    uint8_t modrm = data[idx + instr_data.size++];
+    instr_data.raw_modrm_byte = modrm;
+    instr_data.mod = modrm >> 6 & 0b00000011;
+    instr_data.reg = modrm >> 3 & 0b00000111;
+    instr_data.rm  = modrm & 0b00000111;
+
+    if ((instr_data.mod == 0 && instr_data.rm == 6 ) || instr_data.mod == 2) {
+      uint16_t value = (uint16_t)data[idx + instr_data.size++] | (uint16_t)data[idx + instr_data.size++] << 8;
+      instr_data.displacement = (int16_t)value;
+    }
+    else if (instr_data.mod == 1) 
+      instr_data.displacement = (int8_t)data[idx + instr_data.size++];
+  }
+
+  instr_data.immediate = 0;
+  if (instr->imm_type == 1)
+    instr_data.immediate = (int8_t)data[idx + instr_data.size++];
+  else if (instr->imm_type == 2) {
+    uint16_t value = (uint16_t)data[idx + instr_data.size++] | (uint16_t)data[idx + instr_data.size++] << 8;
+    instr_data.immediate = (int16_t)value;
+  }
+  else if (instr->imm_type == 3) {
+    if (instr_data.instr.has_s_bit && instr_data.s_bit && instr_data.w_bit) // s1, w1
+      instr_data.immediate = (int8_t)data[idx + instr_data.size++];
+    else if (instr_data.w_bit) { // w1, and s0 or no s
+      uint16_t value = (uint16_t)data[idx + instr_data.size++] | (uint16_t)data[idx + instr_data.size++] << 8;
+      instr_data.immediate = (int16_t)value;
+    }
+    else
+      instr_data.immediate = (int8_t)data[idx + instr_data.size++];
+  }
+
+  return instr_data;
 }
 

@@ -84,12 +84,14 @@ typedef struct {
   //raw bytes
   uint8_t raw_op_byte;
   uint8_t raw_modrm_byte;
+
+  uint8_t size; //how many total bytes this instruction is
 } FullInstructionData;
 
 extern const Instruction instruction_table[];
 
 const Instruction* lookup_instruction(uint8_t opcode, uint8_t modrm);
 
-void process8086(const uint8_t* data, const size_t count);
+FullInstructionData decode8086instruction(const uint8_t* data, const size_t idx, const size_t count);
 
 #endif
