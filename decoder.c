@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include "intel8086.h"
 #include "intel8086_text.h"
 
@@ -85,26 +86,40 @@ void decodeAndSim(const uint8_t* data, const size_t count)
   {
     FullInstructionData instr = decode8086Instruction(data, idx, count);
     printInstruction(&instr);
-    printf("\n");
+    printf("\t;\t  test");
     idx += instr.size;
   }
 }
 
 int main(int argc, char* argv[])
 {
-  if (argc != 2)
+  if (argc < 2)
   {
-    printf("Usage: %s <filename>\n", argv[0]);
+    printf("Usage: %s [args] <filename>\n", argv[0]);
+    printf("arg list\n");
+    printf("  --sim : simulate and print what 8086 would do\n");
+      
     return EXIT_FAILURE;
   }
-  const char* filename = argv[1];
+
+  char* arg;
+  char* filename;
+  uint8_t sim = 0;
+  for (int i = 1; i < argc; i++)
+  {
+    arg = argv[i];
+    if (strcmp(arg, "--sim") == 0)
+      sim = 1;
+    else 
+      filename = arg;
+  }
 
   size_t count;
   uint8_t* data = read_binary_file(filename, &count);
 
   if (data != NULL)
   {
-    decode(data, count);
+    sim ? decodeAndSim(data, count) : decode(data, count);
     free(data);
   }
   else
