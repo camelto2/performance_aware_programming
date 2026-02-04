@@ -23,6 +23,26 @@ typedef enum
   CMP_R_RM,
   CMP_W_RM,
   CMP_W_A,
+  JNE,
+  JE, 
+  JL, 
+  JLE,
+  JB,
+  JBE, 
+  JP,
+  JO,
+  JS,
+  JNL,
+  JG,
+  JNB,
+  JA,
+  JNP,
+  JNO, 
+  JNS,
+  LOOP,
+  LOOPZ,
+  LOOPNZ,
+  JCXZ,
   NUM_INSTR
 } InstructionType;
 
@@ -40,6 +60,7 @@ typedef struct
     uint8_t has_s_bit     : 1; // Sign-extend bit (for immediate data)
     uint8_t imm_type      : 2; // 0=none, 1=byte, 2=word, 3=depends on W bit
     uint8_t imm_is_mem    : 1; // 0=imm is data, 1=imm is a memory address. only in mov
+    uint8_t ip_increment  : 1; // whether it is an instruction pointer increment
     
     //reg can be in opcode for some instructions, and can also be necessary to actually decode instruction
     uint8_t modrm_reg           : 3; // Actually store the modrm register

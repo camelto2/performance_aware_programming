@@ -6,6 +6,14 @@ const char* reg_16[8]   = {"ax", "cx", "dx", "bx", "sp", "bp", "si", "di"};
 const char* eff_addr[8] = {"bx + si", "bx + di", "bp + si", "bp + di", "si", "di", "bp", "bx"};
 
 //helper functions
+
+static void print_ip_increment(const FullInstructionData* instr_data)
+{
+  int16_t offset = instr_data->immediate + 2;
+  const char* sign = offset >= 0 ? "+" : "-";
+  printf("$%s%" PRIi16 "\n", sign, offset >= 0 ? offset : -offset);
+}
+
 static void print_imm_to_reg(const FullInstructionData* instr_data)
 {
   const char* dst = instr_data->w_bit ? reg_16[instr_data->reg] : reg_8[instr_data->reg];
@@ -78,7 +86,9 @@ void print_instruction(const FullInstructionData* instr_data) {
 #endif
   printf("%s ", instr_data->instr.mnemonic);
 
-  if (instr_data->instr.reg_in_opcode)
+  if (instr_data->instr.ip_increment)
+    print_ip_increment(instr_data);
+  else if (instr_data->instr.reg_in_opcode)
     print_imm_to_reg(instr_data);
   else if (!instr_data->instr.has_modrm && instr_data->instr.imm_type > 0)
     print_acc_tofrom_imm(instr_data);

@@ -17,6 +17,26 @@ const Instruction instruction_table[] = {
   { CMP_R_RM,    "cmp", 0b00111000, 0b11111100, .has_modrm=1, .has_d_bit=1, .has_w_bit=1},
   { CMP_W_RM,    "cmp", 0b10000000, 0b11111100, .has_s_bit=1, .has_w_bit=1, .has_modrm=1, .modrm_reg_is_opcode=1, .modrm_reg=7, .imm_type=3},
   { CMP_W_A,     "cmp", 0b00111100, 0b11111110, .has_w_bit=1, .imm_type=3 },
+  { JNE,         "jne", 0b01110101, 0b11111111, .ip_increment=1, .imm_type=1 },
+  { JE,          "je",  0b01110100, 0b11111111, .ip_increment=1, .imm_type=1 },
+  { JL,          "jl",  0b01111100, 0b11111111, .ip_increment=1, .imm_type=1 },
+  { JLE,         "jle", 0b01111110, 0b11111111, .ip_increment=1, .imm_type=1 },
+  { JB,          "jb",  0b01110010, 0b11111111, .ip_increment=1, .imm_type=1 },
+  { JBE,         "jbe", 0b01110110, 0b11111111, .ip_increment=1, .imm_type=1 },
+  { JP,          "jp",  0b01111010, 0b11111111, .ip_increment=1, .imm_type=1 },
+  { JO,          "jo",  0b01110000, 0b11111111, .ip_increment=1, .imm_type=1 },
+  { JS,          "js",  0b01111000, 0b11111111, .ip_increment=1, .imm_type=1 },
+  { JNL,         "jnl", 0b01111101, 0b11111111, .ip_increment=1, .imm_type=1 },
+  { JG,          "jg",  0b01111111, 0b11111111, .ip_increment=1, .imm_type=1 },
+  { JNB,         "jnb", 0b01110011, 0b11111111, .ip_increment=1, .imm_type=1 },
+  { JA,          "ja",  0b01110111, 0b11111111, .ip_increment=1, .imm_type=1 },
+  { JNP,         "jnp", 0b01111011, 0b11111111, .ip_increment=1, .imm_type=1 },
+  { JNO,         "jno", 0b01110001, 0b11111111, .ip_increment=1, .imm_type=1 },
+  { JNS,         "jns", 0b01111001, 0b11111111, .ip_increment=1, .imm_type=1 },
+  { LOOP,       "loop", 0b11100010, 0b11111111, .ip_increment=1, .imm_type=1 },
+  { LOOPZ,     "loopz", 0b11100001, 0b11111111, .ip_increment=1, .imm_type=1 },
+  { LOOPNZ,   "loopnz", 0b11100000, 0b11111111, .ip_increment=1, .imm_type=1 },
+  { JCXZ,       "jcxz", 0b11100011, 0b11111111, .ip_increment=1, .imm_type=1 },
 };
 
 const Instruction* lookup_instruction(uint8_t opcode, uint8_t modrm) {
@@ -90,7 +110,7 @@ void process8086(const uint8_t* data, const size_t count) {
 
     instr_data.immediate = 0;
     if (instr->imm_type == 1)
-      instr_data.immediate = data[idx++];
+      instr_data.immediate = (int8_t)data[idx++];
     else if (instr->imm_type == 2) {
       uint16_t value = (uint16_t)data[idx] | (uint16_t)data[idx + 1] << 8;
       instr_data.immediate = (int16_t)value;
