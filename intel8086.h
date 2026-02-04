@@ -17,6 +17,12 @@ typedef enum
   ADD,
   ADD_T_RM,
   ADD_T_A,
+  SUB,
+  SUB_F_RM,
+  SUB_F_A,
+  CMP_R_RM,
+  CMP_W_RM,
+  CMP_W_A,
   NUM_INSTR
 } InstructionType;
 

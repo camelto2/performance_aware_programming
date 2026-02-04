@@ -10,7 +10,13 @@ const Instruction instruction_table[] = {
   { MOV_A_T_M,   "mov", 0b10100010, 0b11111110, .has_w_bit=1, .imm_type=2,  .has_d_bit=1, .imm_is_mem=1}, 
   { ADD,         "add", 0b00000000, 0b11111100, .has_w_bit=1, .has_d_bit=1, .has_modrm=1},
   { ADD_T_RM,    "add", 0b10000000, 0b11111100, .has_s_bit=1, .has_w_bit=1, .has_modrm=1, .modrm_reg_is_opcode=1, .modrm_reg=0, .imm_type=3},
-  { ADD_T_A,     "add", 0b00000100, 0b11111110, .has_w_bit=1, .imm_type=3 }
+  { ADD_T_A,     "add", 0b00000100, 0b11111110, .has_w_bit=1, .imm_type=3 },
+  { SUB,         "sub", 0b00101000, 0b11111100, .has_w_bit=1, .has_d_bit=1, .has_modrm=1},
+  { SUB_F_RM,    "sub", 0b10000000, 0b11111100, .has_s_bit=1, .has_w_bit=1, .has_modrm=1, .modrm_reg_is_opcode=1, .modrm_reg=5, .imm_type=3},
+  { SUB_F_A,     "sub", 0b00101100, 0b11111110, .has_w_bit=1, .imm_type=3 },
+  { CMP_R_RM,    "cmp", 0b00111000, 0b11111100, .has_modrm=1, .has_d_bit=1, .has_w_bit=1},
+  { CMP_W_RM,    "cmp", 0b10000000, 0b11111100, .has_s_bit=1, .has_w_bit=1, .has_modrm=1, .modrm_reg_is_opcode=1, .modrm_reg=7, .imm_type=3},
+  { CMP_W_A,     "cmp", 0b00111100, 0b11111110, .has_w_bit=1, .imm_type=3 },
 };
 
 const Instruction* lookup_instruction(uint8_t opcode, uint8_t modrm) {
