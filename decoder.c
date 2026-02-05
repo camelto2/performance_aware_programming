@@ -4,9 +4,11 @@
 #include <string.h>
 #include "intel8086.h"
 #include "intel8086_text.h"
+#include "sim8086.h"
 
 #include "intel8086.c"
 #include "intel8086_text.c"
+#include "sim8086.c"
 
 uint8_t* read_binary_file(const char* filename, size_t* count_out)
 {
@@ -80,15 +82,22 @@ void decode(const uint8_t* data, const size_t count)
 
 void decodeAndSim(const uint8_t* data, const size_t count)
 {
+  CPUState cpu = {0};
   printf("bits 16\n");
   size_t idx = 0;
   while (idx < count) 
   {
+    CPUState before = cpu;
     FullInstructionData instr = decode8086Instruction(data, idx, count);
     printInstruction(&instr);
-    printf("\t;\t  test");
+    executeInstruction(&cpu, &instr);
+    printCPUChange(&before, &cpu);
+    printf("\n");
     idx += instr.size;
   }
+  printf("\n\n");
+  printf("Final CPU State:\n");
+  printCPUState(&cpu);
 }
 
 int main(int argc, char* argv[])
