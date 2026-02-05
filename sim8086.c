@@ -162,9 +162,9 @@ void printCPUChange(CPUState* before, CPUState* after) {
 void printCPUState(CPUState* cpu)
 {
   printf("ax: 0x%x\n", cpu->ax.x);
+  printf("bx: 0x%x\n", cpu->bx.x);
   printf("cx: 0x%x\n", cpu->cx.x);
   printf("dx: 0x%x\n", cpu->dx.x);
-  printf("bx: 0x%x\n", cpu->bx.x);
   printf("sp: 0x%x\n", cpu->sp.x);
   printf("bp: 0x%x\n", cpu->bp.x);
   printf("si: 0x%x\n", cpu->si.x);
