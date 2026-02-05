@@ -73,12 +73,30 @@ void setReg8(CPUState* cpu, Register8Type reg, const uint8_t val) {
 
 void executeInstruction(CPUState* cpu, FullInstructionData* data) {
   switch (data->instr.type) {
-    case MOV_T_R:
+    case MOV_T_R: {
       if (data->w_bit)
         setReg16(cpu, (Register16Type)data->reg, (uint16_t)data->immediate);
       else
         setReg8(cpu, (Register8Type)data->reg, (uint8_t)data->immediate);
       break;
+    }
+    case MOV_R_TF_RM: {
+      if (data->mod == 3) {
+        if (data->w_bit) {
+          uint16_t val = data->d_bit ? getReg16(cpu, (Register16Type)data->rm) : getReg16(cpu, (Register16Type)data->reg);
+          data->d_bit ? setReg16(cpu, (Register16Type)data->reg, val) : setReg16(cpu, (Register16Type)data->rm, val); 
+        }
+        else {
+          uint8_t val = data->d_bit ? getReg8(cpu, (Register8Type)data->rm) : getReg16(cpu, (Register8Type)data->reg);
+          data->d_bit ? setReg8(cpu, (Register8Type)data->reg, val) : setReg8(cpu, (Register8Type)data->rm, val); 
+        }
+      }
+      else {
+        printf("Need to implement\n");
+        exit(0);
+      }
+      break;
+    }
     default:
       printf("Unknown instruction type\n");
       exit(0);
