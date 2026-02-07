@@ -64,6 +64,7 @@ typedef struct {
   SimpleRegister di;
 
   uint16_t flags;
+  uint16_t ip;
 } CPUState;
 
 //printing related functions

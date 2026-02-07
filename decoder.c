@@ -84,16 +84,14 @@ void decodeAndSim(const uint8_t* data, const size_t count)
 {
   CPUState cpu = {0};
   printf("bits 16\n");
-  size_t idx = 0;
-  while (idx < count) 
+  while (cpu.ip < count) 
   {
     CPUState before = cpu;
-    FullInstructionData instr = decode8086Instruction(data, idx, count);
+    FullInstructionData instr = decode8086Instruction(data, cpu.ip, count);
     printInstruction(&instr);
     executeInstruction(&cpu, &instr);
     printCPUChange(&before, &cpu);
     printf("\n");
-    idx += instr.size;
   }
   printf("\n\n");
   printf("Final CPU State:\n");

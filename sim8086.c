@@ -86,6 +86,7 @@ void setFlags(CPUState* cpu, const uint16_t val) {
 }
 
 void executeInstruction(CPUState* cpu, FullInstructionData* data) {
+  cpu->ip += data->size;
   switch (data->instr.type) {
     case MOV_T_R: {
       if (data->w_bit)
@@ -190,6 +191,12 @@ void executeInstruction(CPUState* cpu, FullInstructionData* data) {
       }
       break;
     }
+    case JNE: {
+      if (!((cpu->flags >> FLAG_ZF) & 1)) {
+        cpu->ip += data->immediate;
+      }
+      break;
+    }
     default:
       printf("Unknown instruction type\n");
       exit(0);
@@ -200,6 +207,12 @@ void executeInstruction(CPUState* cpu, FullInstructionData* data) {
 void printCPUChange(CPUState* before, CPUState* after) {
   printf(" ;\t");
   int count = 0;
+
+  if (before->ip != after->ip) {
+    if (count) printf("  ");
+    printf("ip: 0x%x -> 0x%x", before->ip, after->ip);
+    count++;
+  }
   //split registers, show only the part that count
   if (before->ax.x != after->ax.x) {
     if (count) printf("  ");
@@ -295,6 +308,8 @@ void printCPUState(CPUState* cpu)
   printf("bp: 0x%x\n", cpu->bp.x);
   printf("si: 0x%x\n", cpu->si.x);
   printf("di: 0x%x\n", cpu->di.x);
+
+  printf("ip: 0x%x\n", cpu->ip);
 
   printf("ZF: %i\n", (cpu->flags & 1<<FLAG_ZF) ? 1 : 0);
   printf("SF: %i\n", (cpu->flags & 1<<FLAG_SF) ? 1 : 0);
