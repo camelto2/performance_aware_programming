@@ -71,6 +71,20 @@ void setReg8(CPUState* cpu, Register8Type reg, const uint8_t val) {
   };
 }
 
+void setFlags(CPUState* cpu, const uint16_t val) {
+  //ZF
+  if (val == 0)
+    cpu->flags |= (1 << FLAG_ZF);
+  else
+    cpu->flags &= ~(1 << FLAG_ZF);
+
+  uint16_t mask = val & (1 << 15);
+  if (mask != 0)
+    cpu->flags |= (1 << FLAG_SF);
+  else
+    cpu->flags &= ~(1 << FLAG_SF);
+}
+
 void executeInstruction(CPUState* cpu, FullInstructionData* data) {
   switch (data->instr.type) {
     case MOV_T_R: {
@@ -94,6 +108,85 @@ void executeInstruction(CPUState* cpu, FullInstructionData* data) {
       else {
         printf("Need to implement\n");
         exit(0);
+      }
+      break;
+    }
+    case ADD: {
+      if (data->w_bit) {
+        uint16_t dst = data->d_bit ? getReg16(cpu, (Register16Type)data->reg) : getReg16(cpu, (Register16Type)data->rm);
+        uint16_t src = data->d_bit ? getReg16(cpu, (Register16Type)data->rm) : getReg16(cpu, (Register16Type)data->reg);
+        uint16_t val = dst + src;
+        data->d_bit ? setReg16(cpu, (Register16Type)data->reg, val) : setReg16(cpu, (Register16Type)data->rm, val); 
+        setFlags(cpu, val);
+      }
+      else {
+        uint8_t dst = data->d_bit ? getReg8(cpu, (Register8Type)data->reg) : getReg16(cpu, (Register8Type)data->rm);
+        uint8_t src = data->d_bit ? getReg8(cpu, (Register8Type)data->rm) : getReg16(cpu, (Register8Type)data->reg);
+        uint8_t val = dst + src;
+        data->d_bit ? setReg8(cpu, (Register8Type)data->reg, val) : setReg8(cpu, (Register8Type)data->rm, val); 
+        setFlags(cpu, val);
+      }
+      break;
+    }
+    case ADD_T_RM: {
+      if (data->w_bit) {
+        uint16_t dst = getReg16(cpu, (Register16Type)data->rm);
+        uint16_t val = dst + data->immediate;
+        setReg16(cpu, (Register16Type)data->rm, val); 
+        setFlags(cpu, val);
+      }
+      else {
+        uint8_t dst = getReg16(cpu, (Register8Type)data->rm);
+        uint8_t val = dst + data->immediate;
+        setReg8(cpu, (Register8Type)data->rm, val); 
+        setFlags(cpu, val);
+      }
+      break;
+    }
+    case SUB: {
+      if (data->w_bit) {
+        uint16_t dst = data->d_bit ? getReg16(cpu, (Register16Type)data->reg) : getReg16(cpu, (Register16Type)data->rm);
+        uint16_t src = data->d_bit ? getReg16(cpu, (Register16Type)data->rm) : getReg16(cpu, (Register16Type)data->reg);
+        uint16_t val = dst - src;
+        data->d_bit ? setReg16(cpu, (Register16Type)data->reg, val) : setReg16(cpu, (Register16Type)data->rm, val); 
+        setFlags(cpu, val);
+      }
+      else {
+        uint8_t dst = data->d_bit ? getReg8(cpu, (Register8Type)data->reg) : getReg16(cpu, (Register8Type)data->rm);
+        uint8_t src = data->d_bit ? getReg8(cpu, (Register8Type)data->rm) : getReg16(cpu, (Register8Type)data->reg);
+        uint8_t val = dst - src;
+        data->d_bit ? setReg8(cpu, (Register8Type)data->reg, val) : setReg8(cpu, (Register8Type)data->rm, val); 
+        setFlags(cpu, val);
+      }
+      break;
+    }
+    case SUB_F_RM: {
+      if (data->w_bit) {
+        uint16_t dst = getReg16(cpu, (Register16Type)data->rm);
+        uint16_t val = dst - data->immediate;
+        setReg16(cpu, (Register16Type)data->rm, val); 
+        setFlags(cpu, val);
+      }
+      else {
+        uint8_t dst = getReg16(cpu, (Register8Type)data->rm);
+        uint8_t val = dst - data->immediate;
+        setReg8(cpu, (Register8Type)data->rm, val); 
+        setFlags(cpu, val);
+      }
+      break;
+    }
+    case CMP_R_RM: {
+      if (data->w_bit) {
+        uint16_t dst = data->d_bit ? getReg16(cpu, (Register16Type)data->reg) : getReg16(cpu, (Register16Type)data->rm);
+        uint16_t src = data->d_bit ? getReg16(cpu, (Register16Type)data->rm) : getReg16(cpu, (Register16Type)data->reg);
+        uint16_t val = dst - src;
+        setFlags(cpu, val);
+      }
+      else {
+        uint8_t dst = data->d_bit ? getReg8(cpu, (Register8Type)data->reg) : getReg16(cpu, (Register8Type)data->rm);
+        uint8_t src = data->d_bit ? getReg8(cpu, (Register8Type)data->rm) : getReg16(cpu, (Register8Type)data->reg);
+        uint8_t val = dst - src;
+        setFlags(cpu, val);
       }
       break;
     }
@@ -175,6 +268,21 @@ void printCPUChange(CPUState* before, CPUState* after) {
     printf("di: 0x%x -> 0x%x", before->di.x, after->di.x);
     count++;
   }
+
+  uint16_t diff = before->flags^after->flags;
+  uint16_t mask = 1 << FLAG_ZF;
+  if ((diff & mask) != 0) {
+    if (count) printf("  ");
+    printf("ZF: %i -> %i", (before->flags & mask) ? 1 : 0, (after->flags & mask) ? 1 : 0);
+    count++;
+  }
+
+  mask = 1 << FLAG_SF;
+  if ((diff & mask) != 0) {
+    if (count) printf("  ");
+    printf("SF: %i -> %i", (before->flags & mask) ? 1 : 0, (after->flags & mask) ? 1 : 0);
+    count++;
+  }
 }
 
 void printCPUState(CPUState* cpu)
@@ -187,5 +295,8 @@ void printCPUState(CPUState* cpu)
   printf("bp: 0x%x\n", cpu->bp.x);
   printf("si: 0x%x\n", cpu->si.x);
   printf("di: 0x%x\n", cpu->di.x);
+
+  printf("ZF: %i\n", (cpu->flags & 1<<FLAG_ZF) ? 1 : 0);
+  printf("SF: %i\n", (cpu->flags & 1<<FLAG_SF) ? 1 : 0);
 
 }

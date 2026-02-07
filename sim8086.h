@@ -39,6 +39,20 @@ typedef struct {
   uint16_t x; //full 16 bit, for use consistency with SplitRegister
 } SimpleRegister;
 
+
+typedef enum {
+  FLAG_CF,
+  FLAG_PF, 
+  FLAG_AF,
+  FLAG_ZF, 
+  FLAG_SF, 
+  FLAG_TF, 
+  FLAG_IF, 
+  FLAG_DF, 
+  FLAG_OF,
+  NUM_FLAGS
+} FlagType; 
+
 typedef struct {
   SplitRegister ax;
   SplitRegister cx;
@@ -48,6 +62,8 @@ typedef struct {
   SimpleRegister bp;
   SimpleRegister si;
   SimpleRegister di;
+
+  uint16_t flags;
 } CPUState;
 
 //printing related functions
@@ -60,6 +76,7 @@ void setReg16(CPUState* cpu, Register16Type reg, const uint16_t val);
 uint8_t getReg8(CPUState* cpu, Register8Type reg);
 void setReg8(CPUState* cpu, Register8Type reg, const uint8_t val);
 
+void setFlags(CPUState* cpu, const uint16_t val);
 void executeInstruction(CPUState* cpu, FullInstructionData* instr);
 
 void printCPUChange(CPUState* before, CPUState* after);
