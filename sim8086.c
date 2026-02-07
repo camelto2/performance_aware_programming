@@ -85,7 +85,7 @@ void setFlags(CPUState* cpu, const uint16_t val) {
     cpu->flags &= ~(1 << FLAG_SF);
 }
 
-void executeInstruction(CPUState* cpu, FullInstructionData* data) {
+void executeInstruction(CPUState* cpu, FullInstructionData* data, uint8_t* mem) {
   cpu->ip += data->size;
   switch (data->instr.type) {
     case MOV_T_R: {
@@ -192,9 +192,8 @@ void executeInstruction(CPUState* cpu, FullInstructionData* data) {
       break;
     }
     case JNE: {
-      if (!((cpu->flags >> FLAG_ZF) & 1)) {
+      if (!((cpu->flags >> FLAG_ZF) & 1))
         cpu->ip += data->immediate;
-      }
       break;
     }
     default:

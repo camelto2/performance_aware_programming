@@ -78,7 +78,7 @@ uint8_t getReg8(CPUState* cpu, Register8Type reg);
 void setReg8(CPUState* cpu, Register8Type reg, const uint8_t val);
 
 void setFlags(CPUState* cpu, const uint16_t val);
-void executeInstruction(CPUState* cpu, FullInstructionData* instr);
+void executeInstruction(CPUState* cpu, FullInstructionData* instr, uint8_t* mem);
 
 void printCPUChange(CPUState* before, CPUState* after);
 
