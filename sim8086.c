@@ -87,6 +87,9 @@ void setFlags(CPUState* cpu, const uint16_t val) {
 
 void executeInstruction(CPUState* cpu, FullInstructionData* data, uint8_t* mem) {
   cpu->ip += data->size;
+#ifdef DEBUG
+  printf("data->instr.type");
+#endif
   switch (data->instr.type) {
     case MOV_T_R: {
       if (data->w_bit)
@@ -107,8 +110,137 @@ void executeInstruction(CPUState* cpu, FullInstructionData* data, uint8_t* mem) 
         }
       }
       else {
-        printf("Need to implement\n");
-        exit(0);
+        uint16_t idx = 0;
+        switch (data->rm) {
+          case 0: {
+            idx  = getReg16(cpu, REG_BX);
+            idx += getReg16(cpu, REG_SI);
+            idx += data->displacement;  //displacement is 0 in data if not needed
+            break;
+          }
+          case 1: {
+            idx  = getReg16(cpu, REG_BX);
+            idx += getReg16(cpu, REG_DI);
+            idx += data->displacement;  //displacement is 0 in data if not needed
+            break;
+          }
+          case 2: {
+            idx  = getReg16(cpu, REG_BP);
+            idx += getReg16(cpu, REG_SI);
+            idx += data->displacement;  //displacement is 0 in data if not needed
+            break;
+          }
+          case 3: {
+            idx  = getReg16(cpu, REG_BP);
+            idx += getReg16(cpu, REG_DI);
+            idx += data->displacement;  //displacement is 0 in data if not needed
+            break;
+          }
+          case 4: {
+            idx  = getReg16(cpu, REG_SI);
+            idx += data->displacement;
+            break;
+          }
+          case 5: {
+            idx  = getReg16(cpu, REG_DI);
+            idx += data->displacement;
+            break;
+          }
+          case 6: {
+            if (data->mod == 0)
+              idx = data->displacement;
+            else
+              idx  = getReg16(cpu, REG_BP) + data->displacement;
+            break;
+          }
+          case 7: {
+            idx  = getReg16(cpu, REG_BX);
+            idx += data->displacement;
+            break;
+          }
+          default:
+            printf("Unknown R/M\n");
+            exit(0);
+            break;
+        }
+        if (data->d_bit) 
+          (data->w_bit) ? setReg16(cpu, (Register16Type)data->reg, mem[idx]) : setReg8(cpu, (Register8Type)data->reg, mem[idx]);
+        else {
+          uint16_t val = (data->w_bit) ?  getReg16(cpu, (Register16Type)data->reg) : getReg8(cpu, (Register8Type)data->reg);
+          mem[idx] = val;
+        }
+      }
+      break;
+    }
+    case MOV_T_RM: {
+      if (data->mod == 3) {
+        if (data->w_bit) {
+          uint16_t val = data->immediate;
+          setReg16(cpu, (Register16Type)data->rm, val);
+        }
+        else {
+          uint8_t val = data->immediate;
+          setReg8(cpu, (Register8Type)data->rm, val);
+        }
+      }
+      else {
+        uint16_t idx = 0;
+        switch (data->rm) {
+          case 0: {
+            idx  = getReg16(cpu, REG_BX);
+            idx += getReg16(cpu, REG_SI);
+            idx += data->displacement;  //displacement is 0 in data if not needed
+            mem[idx] = data->immediate;
+            break;
+          }
+          case 1: {
+            idx  = getReg16(cpu, REG_BX);
+            idx += getReg16(cpu, REG_DI);
+            idx += data->displacement;  //displacement is 0 in data if not needed
+            mem[idx] = data->immediate;
+            break;
+          }
+          case 2: {
+            idx  = getReg16(cpu, REG_BP);
+            idx += getReg16(cpu, REG_SI);
+            idx += data->displacement;  //displacement is 0 in data if not needed
+            mem[idx] = data->immediate;
+            break;
+          }
+          case 3: {
+            idx  = getReg16(cpu, REG_BP);
+            idx += getReg16(cpu, REG_DI);
+            idx += data->displacement;  //displacement is 0 in data if not needed
+            mem[idx] = data->immediate;
+            break;
+          }
+          case 4: {
+            idx  = getReg16(cpu, REG_SI);
+            idx += data->displacement;
+            mem[idx] = data->immediate;
+            break;
+          }
+          case 5: {
+            idx  = getReg16(cpu, REG_DI);
+            idx += data->displacement;
+            mem[idx] = data->immediate;
+            break;
+          }
+          case 6: {
+            if (data->mod == 0)
+              idx = data->displacement;
+            else
+              idx  = getReg16(cpu, REG_BP) + data->displacement;
+            mem[idx] = data->immediate;
+            break;
+          }
+          case 7: {
+            idx  = getReg16(cpu, REG_BX);
+            idx += data->displacement;
+            mem[idx] = data->immediate;
+            break;
+          }
+        }
       }
       break;
     }
@@ -299,16 +431,16 @@ void printCPUChange(CPUState* before, CPUState* after) {
 
 void printCPUState(CPUState* cpu)
 {
-  printf("ax: 0x%x\n", cpu->ax.x);
-  printf("bx: 0x%x\n", cpu->bx.x);
-  printf("cx: 0x%x\n", cpu->cx.x);
-  printf("dx: 0x%x\n", cpu->dx.x);
-  printf("sp: 0x%x\n", cpu->sp.x);
-  printf("bp: 0x%x\n", cpu->bp.x);
-  printf("si: 0x%x\n", cpu->si.x);
-  printf("di: 0x%x\n", cpu->di.x);
+  printf("ax: 0x%x (%i)\n", cpu->ax.x, cpu->ax.x);
+  printf("bx: 0x%x (%i)\n", cpu->bx.x, cpu->bx.x);
+  printf("cx: 0x%x (%i)\n", cpu->cx.x, cpu->cx.x);
+  printf("dx: 0x%x (%i)\n", cpu->dx.x, cpu->dx.x);
+  printf("sp: 0x%x (%i)\n", cpu->sp.x, cpu->sp.x);
+  printf("bp: 0x%x (%i)\n", cpu->bp.x, cpu->bp.x);
+  printf("si: 0x%x (%i)\n", cpu->si.x, cpu->si.x);
+  printf("di: 0x%x (%i)\n", cpu->di.x, cpu->di.x);
 
-  printf("ip: 0x%x\n", cpu->ip);
+  printf("ip: 0x%x (%i)\n", cpu->ip, cpu->ip);
 
   printf("ZF: %i\n", (cpu->flags & 1<<FLAG_ZF) ? 1 : 0);
   printf("SF: %i\n", (cpu->flags & 1<<FLAG_SF) ? 1 : 0);
