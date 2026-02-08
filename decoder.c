@@ -67,6 +67,21 @@ uint8_t* read_binary_file(const char* filename, size_t* count_out)
   return data;
 }
 
+void dumpFile(const uint8_t* mem)
+{
+  FILE* f = fopen("mem.data", "wb");
+  if (f == NULL) {
+    printf("Error opening mem.data\n");
+    exit(0);
+  }
+  size_t count = fwrite(mem, sizeof(uint8_t), sizeof(mem)/sizeof(mem[0]), f);
+  if (count != sizeof(mem)/sizeof(mem[0])) {
+    printf("Error writing mem.data: Only %zu of %d elements written\n", count, sizeof(mem)/sizeof(mem[0]));
+    exit(0);
+  }
+  fclose(f);
+}
+
 void decode(const uint8_t* data, const size_t count)
 {
   printf("bits 16\n");
@@ -97,7 +112,9 @@ void decodeAndSim(const uint8_t* data, const size_t count)
   printf("\n\n");
   printf("Final CPU State:\n");
   printCPUState(&cpu);
+  dumpFile(mem);
 }
+
 
 int main(int argc, char* argv[])
 {

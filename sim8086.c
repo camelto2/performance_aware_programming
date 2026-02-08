@@ -164,9 +164,9 @@ void executeInstruction(CPUState* cpu, FullInstructionData* data, uint8_t* mem) 
             break;
         }
         if (data->d_bit) 
-          (data->w_bit) ? setReg16(cpu, (Register16Type)data->reg, mem[idx]) : setReg8(cpu, (Register8Type)data->reg, mem[idx]);
+          (data->w_bit) ? setReg16(cpu, (Register16Type)data->reg, mem[idx]) : setReg16(cpu, (Register16Type)data->reg, mem[idx]);
         else {
-          uint16_t val = (data->w_bit) ?  getReg16(cpu, (Register16Type)data->reg) : getReg8(cpu, (Register8Type)data->reg);
+          uint16_t val = (data->w_bit) ?  getReg8(cpu, (Register8Type)data->reg) : getReg8(cpu, (Register8Type)data->reg);
           mem[idx] = val;
         }
       }
@@ -322,6 +322,24 @@ void executeInstruction(CPUState* cpu, FullInstructionData* data, uint8_t* mem) 
         setFlags(cpu, val);
       }
       break;
+    }
+    case CMP_W_RM: {
+      if (data->mod == 3) {
+        if (data->w_bit) {
+          uint16_t dst = getReg16(cpu, (Register16Type)data->rm);
+          uint16_t val = dst - data->immediate;
+          setFlags(cpu, val);
+        }
+        else {
+          uint8_t dst = getReg8(cpu, (Register8Type)data->rm);
+          uint8_t val = dst - data->immediate;
+          setFlags(cpu, val);
+        }
+      }
+      else {
+        printf("Need to implement\n");
+        exit(0);
+      }
     }
     case JNE: {
       if (!((cpu->flags >> FLAG_ZF) & 1))
