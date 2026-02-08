@@ -253,8 +253,8 @@ void executeInstruction(CPUState* cpu, FullInstructionData* data, uint8_t* mem) 
         setFlags(cpu, val);
       }
       else {
-        uint8_t dst = data->d_bit ? getReg8(cpu, (Register8Type)data->reg) : getReg16(cpu, (Register8Type)data->rm);
-        uint8_t src = data->d_bit ? getReg8(cpu, (Register8Type)data->rm) : getReg16(cpu, (Register8Type)data->reg);
+        uint8_t dst = data->d_bit ? getReg8(cpu, (Register8Type)data->reg) : getReg8(cpu, (Register8Type)data->rm);
+        uint8_t src = data->d_bit ? getReg8(cpu, (Register8Type)data->rm) : getReg8(cpu, (Register8Type)data->reg);
         uint8_t val = dst + src;
         data->d_bit ? setReg8(cpu, (Register8Type)data->reg, val) : setReg8(cpu, (Register8Type)data->rm, val); 
         setFlags(cpu, val);
@@ -285,8 +285,8 @@ void executeInstruction(CPUState* cpu, FullInstructionData* data, uint8_t* mem) 
         setFlags(cpu, val);
       }
       else {
-        uint8_t dst = data->d_bit ? getReg8(cpu, (Register8Type)data->reg) : getReg16(cpu, (Register8Type)data->rm);
-        uint8_t src = data->d_bit ? getReg8(cpu, (Register8Type)data->rm) : getReg16(cpu, (Register8Type)data->reg);
+        uint8_t dst = data->d_bit ? getReg8(cpu, (Register8Type)data->reg) : getReg8(cpu, (Register8Type)data->rm);
+        uint8_t src = data->d_bit ? getReg8(cpu, (Register8Type)data->rm) : getReg8(cpu, (Register8Type)data->reg);
         uint8_t val = dst - src;
         data->d_bit ? setReg8(cpu, (Register8Type)data->reg, val) : setReg8(cpu, (Register8Type)data->rm, val); 
         setFlags(cpu, val);
@@ -301,7 +301,7 @@ void executeInstruction(CPUState* cpu, FullInstructionData* data, uint8_t* mem) 
         setFlags(cpu, val);
       }
       else {
-        uint8_t dst = getReg16(cpu, (Register8Type)data->rm);
+        uint8_t dst = getReg8(cpu, (Register8Type)data->rm);
         uint8_t val = dst - data->immediate;
         setReg8(cpu, (Register8Type)data->rm, val); 
         setFlags(cpu, val);
@@ -316,8 +316,8 @@ void executeInstruction(CPUState* cpu, FullInstructionData* data, uint8_t* mem) 
         setFlags(cpu, val);
       }
       else {
-        uint8_t dst = data->d_bit ? getReg8(cpu, (Register8Type)data->reg) : getReg16(cpu, (Register8Type)data->rm);
-        uint8_t src = data->d_bit ? getReg8(cpu, (Register8Type)data->rm) : getReg16(cpu, (Register8Type)data->reg);
+        uint8_t dst = data->d_bit ? getReg8(cpu, (Register8Type)data->reg) : getReg8(cpu, (Register8Type)data->rm);
+        uint8_t src = data->d_bit ? getReg8(cpu, (Register8Type)data->rm) : getReg8(cpu, (Register8Type)data->reg);
         uint8_t val = dst - src;
         setFlags(cpu, val);
       }
