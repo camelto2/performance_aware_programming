@@ -69,7 +69,7 @@ FullInstructionData decode8086Instruction(const uint8_t* data, const size_t idx,
     printf("unknown instruction\n");
     exit(0);
   }
-  FullInstructionData instr_data;
+  FullInstructionData instr_data = {0};
   instr_data.instr = *instr;
   instr_data.raw_op_byte = opcode;
 

@@ -88,7 +88,7 @@ void setFlags(CPUState* cpu, const uint16_t val) {
 void executeInstruction(CPUState* cpu, FullInstructionData* data, uint8_t* mem) {
   cpu->ip += data->size;
 #ifdef DEBUG
-  printf("data->instr.type");
+  printf(";  DEBUG instr: %i   ", data->instr.type);
 #endif
   switch (data->instr.type) {
     case MOV_T_R: {
@@ -340,6 +340,7 @@ void executeInstruction(CPUState* cpu, FullInstructionData* data, uint8_t* mem) 
         printf("Need to implement\n");
         exit(0);
       }
+      break;
     }
     case JNE: {
       if (!((cpu->flags >> FLAG_ZF) & 1))
